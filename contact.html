@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>අප සම්බන්ධ කරගන්න | සිංහල ප්‍රවෘත්ති</title>
+    <meta name="description" content="සිංහල ප්‍රවෘත්ති වෙබ් අඩවිය සම්බන්ධ කරගන්න">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1><a href="index.html" style="text-decoration: none; color: inherit;">සිංහල ප්‍රවෘත්ති</a></h1>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="index.html">මුල් පිටුව</a></li>
+                        <li><a href="category.html?cat=politics">දේශපාලන</a></li>
+                        <li><a href="category.html?cat=sports">ක්‍රීඩා</a></li>
+                        <li><a href="category.html?cat=technology">තාක්ෂණය</a></li>
+                        <li><a href="category.html?cat=business">ව්‍යාපාර</a></li>
+                        <li><a href="category.html?cat=entertainment">විනෝදාස්වාදය</a></li>
+                    </ul>
+                </nav>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="ප්‍රවෘත්ති සොයන්න...">
+                    <button type="button" id="searchBtn">සොයන්න</button>
+                </div>
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+        <div class="container">
+            <a href="index.html">මුල් පිටුව</a> &gt;
+            <span>අප සම්බන්ධ කරගන්න</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="contact-page">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1>අප සම්බන්ධ කරගන්න</h1>
+                    <p class="page-subtitle">ඔබගේ අදහස්, යෝජනා සහ ප්‍රශ්න අප වෙත එවන්න</p>
+                </div>
+
+                <!-- Contact Content -->
+                <div class="contact-content">
+                    <!-- Contact Form Section -->
+                    <div class="contact-form-section">
+                        <h2>පණිවිඩයක් එවන්න</h2>
+                        <form class="contact-form" id="contactForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName">මුල් නම *</label>
+                                    <input type="text" id="firstName" name="firstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">අවසන් නම *</label>
+                                    <input type="text" id="lastName" name="lastName" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="email">ඊමේල් ලිපිනය *</label>
+                                    <input type="email" id="email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">දුරකථන අංකය</label>
+                                    <input type="tel" id="phone" name="phone">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label for="subject">විෂය *</label>
+                                    <select id="subject" name="subject" required>
+                                        <option value="">විෂය තෝරන්න</option>
+                                        <option value="news-tip">ප්‍රවෘත්ති උපදෙස</option>
+                                        <option value="feedback">ප්‍රතිචාරය</option>
+                                        <option value="technical">තාක්ෂණික ගැටලුව</option>
+                                        <option value="advertising">ප්‍රචාරණ විමසීම</option>
+                                        <option value="partnership">හවුල්කාරිත්වය</option>
+                                        <option value="other">වෙනත්</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label for="message">පණිවිඩය *</label>
+                                    <textarea id="message" name="message" required placeholder="ඔබගේ පණිවිඩය මෙහි ඇතුළත් කරන්න..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group full-width">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="subscribe" name="subscribe">
+                                        <span class="checkmark"></span>
+                                        ප්‍රවෘත්ති ලැබීමට ලියාපදිංචි වන්න
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="submit-btn">
+                                    <span class="btn-icon">📧</span>
+                                    පණිවිඩය එවන්න
+                                </button>
+                                <button type="reset" class="reset-btn">මකා දමන්න</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Contact Info Section -->
+                    <div class="contact-info-section">
+                        <h2>සම්බන්ධතා තොරතුරු</h2>
+
+                        <div class="contact-methods">
+                            <div class="contact-method">
+                                <div class="method-icon">📧</div>
+                                <div class="method-content">
+                                    <h3>ඊමේල්</h3>
+                                    <p>info@sinhalanews.lk</p>
+                                    <p>news@sinhalanews.lk</p>
+                                </div>
+                            </div>
+
+                            <div class="contact-method">
+                                <div class="method-icon">📞</div>
+                                <div class="method-content">
+                                    <h3>දුරකථන</h3>
+                                    <p>+94 11 234 5678</p>
+                                    <p>+94 11 234 5679</p>
+                                </div>
+                            </div>
+
+                            <div class="contact-method">
+                                <div class="method-icon">📍</div>
+                                <div class="method-content">
+                                    <h3>ලිපිනය</h3>
+                                    <p>සිංහල ප්‍රවෘත්ති</p>
+                                    <p>123, ගාල්ල පාර, කොළඹ 03</p>
+                                </div>
+                            </div>
+
+                            <div class="contact-method">
+                                <div class="method-icon">🕒</div>
+                                <div class="method-content">
+                                    <h3>වේලාව</h3>
+                                    <p>සඳුදා - සිකුරාදා: 9:00 AM - 6:00 PM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Contact Options -->
+                        <div class="quick-contact">
+                            <h3>ක්ෂණික සම්බන්ධතාව</h3>
+                            <div class="quick-contact-buttons">
+                                <a href="tel:+94112345678" class="quick-btn phone">
+                                    <span class="btn-icon">📞</span>
+                                    කෙලින්ම අමතන්න
+                                </a>
+                                <a href="mailto:info@sinhalanews.lk" class="quick-btn email">
+                                    <span class="btn-icon">📧</span>
+                                    ඊමේල් එවන්න
+                                </a>
+                                <a href="https://wa.me/94112345678" class="quick-btn whatsapp">
+                                    <span class="btn-icon">💬</span>
+                                    WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>සිංහල ප්‍රවෘත්ති</h3>
+                    <p>ශ්‍රී ලංකාවේ ප්‍රධාන ප්‍රවෘත්ති වෙබ් අඩවිය. විශ්වසනීය හා නිරවද්‍ය ප්‍රවෘත්ති ඔබ වෙත ගෙන එමු.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>ප්‍රවර්ග</h4>
+                    <ul>
+                        <li><a href="category.html?cat=politics">දේශපාලන</a></li>
+                        <li><a href="category.html?cat=sports">ක්‍රීඩා</a></li>
+                        <li><a href="category.html?cat=technology">තාක්ෂණය</a></li>
+                        <li><a href="category.html?cat=business">ව්‍යාපාර</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>අප ගැන</h4>
+                    <ul>
+                        <li><a href="about.html">අප ගැන</a></li>
+                        <li><a href="contact.html">අප සම්බන්ධ කරගන්න</a></li>
+                        <li><a href="privacy.html">පෞද්ගලිකත්ව ප්‍රතිපත්තිය</a></li>
+                        <li><a href="terms.html">භාවිත කිරීමේ නියම</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>අප අනුගමනය කරන්න</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link">Facebook</a>
+                        <a href="#" class="social-link">Twitter</a>
+                        <a href="#" class="social-link">Instagram</a>
+                        <a href="#" class="social-link">YouTube</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 සිංහල ප්‍රවෘත්ති. සියලුම හිමිකම් ඇවිරිණි.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏠</span>
+            <span class="bottom-nav-label">මුල්</span>
+        </a>
+        <a href="category.html?cat=politics" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏛️</span>
+            <span class="bottom-nav-label">දේශපාලන</span>
+        </a>
+        <a href="category.html?cat=sports" class="bottom-nav-item">
+            <span class="bottom-nav-icon">⚽</span>
+            <span class="bottom-nav-label">ක්‍රීඩා</span>
+        </a>
+        <a href="search.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🔍</span>
+            <span class="bottom-nav-label">සොයන්න</span>
+        </a>
+        <a href="contact.html" class="bottom-nav-item active">
+            <span class="bottom-nav-icon">📞</span>
+            <span class="bottom-nav-label">සම්බන්ධ</span>
+        </a>
+    </nav>
+
+    <script src="assets/js/script.js"></script>
+    <script>
+        // Contact form handling
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Simulate form submission
+            const submitBtn = this.querySelector('.submit-btn');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.innerHTML = '<span class="btn-icon">⏳</span> එවමින්...';
+            submitBtn.disabled = true;
+
+            setTimeout(() => {
+                showNotification('ඔබගේ පණිවිඩය සාර්ථකව එවන ලදී! අපි ඉක්මනින්ම ඔබ සම්බන්ධ කරගන්නමු.', 'success');
+                this.reset();
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        });
+    </script>
+
+    <style>
+        .breadcrumb {
+            background-color: #f8f9fa;
+            padding: 0.75rem 0;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #2c5aa0;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .contact-page {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            color: #2c5aa0;
+            margin-bottom: 1rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .contact-form-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .contact-form-section h2 {
+            color: #2c5aa0;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group.full-width {
+            flex: 1 1 100%;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2c5aa0;
+            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-weight: normal !important;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .submit-btn,
+        .reset-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn {
+            background: #2c5aa0;
+            color: white;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: #1e3a72;
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .reset-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #545b62;
+        }
+
+        .contact-info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .contact-info-section h2 {
+            color: #2c5aa0;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .contact-method {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .method-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .method-content h3 {
+            color: #2c5aa0;
+            margin-bottom: 0.5rem;
+        }
+
+        .method-content p {
+            color: #666;
+            margin: 0.25rem 0;
+            line-height: 1.5;
+        }
+
+        .quick-contact {
+            background: linear-gradient(135deg, #2c5aa0 0%, #1e3a72 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+        }
+
+        .quick-contact h3 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .quick-contact-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quick-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .quick-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Bottom Navigation Styles */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #666;
+            transition: color 0.3s ease;
+            padding: 0.5rem;
+            min-width: 60px;
+        }
+
+        .bottom-nav-item.active,
+        .bottom-nav-item:hover {
+            color: #2c5aa0;
+        }
+
+        .bottom-nav-icon {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .bottom-nav-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        /* Add padding to body to account for bottom nav */
+        body {
+            padding-bottom: 80px;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .contact-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .contact-form-section {
+                padding: 2rem;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .quick-contact-buttons {
+                gap: 0.75rem;
+            }
+
+            .contact-methods {
+                gap: 1rem;
+            }
+
+            .contact-method {
+                padding: 1rem;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .bottom-nav {
+                display: none;
+            }
+
+            body {
+                padding-bottom: 0;
+            }
+        }
+    </style>
+</body>
+</html>
