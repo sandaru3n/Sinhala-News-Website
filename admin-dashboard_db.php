@@ -62,7 +62,7 @@ try {
     $recent_activity = $db->getRecentActivity(5);
 
     // Get current user
-    $current_user = get_current_user();
+    $current_user = get_logged_in_user();
 
 } catch (Exception $e) {
     error_log("Admin dashboard error: " . $e->getMessage());

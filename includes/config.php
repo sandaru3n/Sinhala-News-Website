@@ -153,7 +153,7 @@ function is_editor_or_admin() {
 /**
  * Get current user info
  */
-function get_current_user() {
+function get_logged_in_user() {
     if (!is_logged_in()) {
         return null;
     }

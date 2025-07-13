@@ -79,7 +79,7 @@ try {
     }
 
     // Get current user
-    $current_user = get_current_user();
+    $current_user = get_logged_in_user();
 
 } catch (Exception $e) {
     error_log("Add article page error: " . $e->getMessage());

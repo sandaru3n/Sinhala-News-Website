@@ -202,7 +202,7 @@ CREATE INDEX idx_contact_status ON contact_messages(status);
 CREATE INDEX idx_comments_status ON comments(status);
 
 -- Create view for popular articles
-CREATE VIEW popular_articles AS
+CREATE OR REPLACE VIEW popular_articles AS
 SELECT
     a.*,
     c.name_sinhala as category_name,
@@ -214,7 +214,7 @@ WHERE a.status = 'published'
 ORDER BY a.views DESC, a.created_at DESC;
 
 -- Create view for latest articles
-CREATE VIEW latest_articles AS
+CREATE OR REPLACE VIEW latest_articles AS
 SELECT
     a.*,
     c.name_sinhala as category_name,

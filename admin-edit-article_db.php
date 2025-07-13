@@ -84,7 +84,7 @@ try {
     }
 
     // Get current user
-    $current_user = get_current_user();
+    $current_user = get_logged_in_user();
 
 } catch (Exception $e) {
     error_log("Edit article page error: " . $e->getMessage());
@@ -208,23 +208,16 @@ $csrf_token = generate_csrf_token();
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group full-width">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="featured" name="featured"
-                                       <?= ((isset($_POST['featured']) ? $_POST['featured'] : $article['featured']) ? 'checked' : '') ?>>
-                                <span class="checkmark"></span>
-                                ප්‍රධාන ප්‍රවෘත්තිය ලෙස සකසන්න
+                        <div class="form-group">
+                            <label for="featured">
+                                <input type="checkbox" id="featured" name="featured" value="1" <?= ((isset($_POST['featured']) ? $_POST['featured'] : $article['featured']) ? 'checked' : '') ?>>
+                                ප්‍රධාන ප්‍රවෘත්තිය ලෙස සලකන්න
                             </label>
-                            <small>මෙය ප්‍රධාන ප්‍රවෘත්තිය ලෙස හෝම් පේජයේ ප්‍රදර්ශනය කරයි</small>
                         </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="save-btn primary">
-                            <span class="icon">💾</span>
-                            යාවත්කාලීන කරන්න
-                        </button>
-                        <a href="admin-dashboard_db.php" class="cancel-btn">අවලංගු කරන්න</a>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">යාවත්කාලීන කරන්න</button>
+                            <a href="admin-dashboard_db.php" class="btn btn-secondary" style="margin-left:10px;">අවලංගු කරන්න</a>
+                        </div>
                     </div>
                 </form>
                 <?php endif; ?>

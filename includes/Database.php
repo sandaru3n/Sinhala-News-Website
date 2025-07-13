@@ -686,5 +686,16 @@ class Database {
     public function __destruct() {
         $this->close();
     }
+
+    public function getAdjacentArticle($current_id, $direction = 'prev') {
+        if ($direction === 'prev') {
+            $query = "SELECT id, title FROM articles WHERE id < ? AND status = 'published' ORDER BY id DESC LIMIT 1";
+        } else {
+            $query = "SELECT id, title FROM articles WHERE id > ? AND status = 'published' ORDER BY id ASC LIMIT 1";
+        }
+        $stmt = $this->execute($query, [$current_id]);
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
 }
 ?>

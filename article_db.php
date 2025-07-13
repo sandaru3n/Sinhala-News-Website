@@ -187,13 +187,8 @@ try {
                         <?php
                         // Get previous and next articles
                         try {
-                            $prev_articles = $db->execute("SELECT id, title FROM articles WHERE id < ? AND status = 'published' ORDER BY id DESC LIMIT 1", [$article_id]);
-                            $prev_result = $prev_articles->get_result();
-                            $prev_article = $prev_result->fetch_assoc();
-
-                            $next_articles = $db->execute("SELECT id, title FROM articles WHERE id > ? AND status = 'published' ORDER BY id ASC LIMIT 1", [$article_id]);
-                            $next_result = $next_articles->get_result();
-                            $next_article = $next_result->fetch_assoc();
+                            $prev_article = $db->getAdjacentArticle($article_id, 'prev');
+                            $next_article = $db->getAdjacentArticle($article_id, 'next');
                         } catch (Exception $e) {
                             $prev_article = null;
                             $next_article = null;
