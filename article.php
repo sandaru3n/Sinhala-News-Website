@@ -1,47 +1,60 @@
 <?php
+require_once 'includes/config.php';
+
 // Get article ID from URL
-$article_id = isset($_GET['id']) ? (int)$_GET['id'] : 1;
+$article_id = (int)($_GET['id'] ?? 0);
 
-// Sample article data (in real application, this would come from database)
-$articles = [
-    1 => [
-        'title' => 'ශ්‍රී ලංකාවේ නව ආර්ථික ප්‍රතිසංස්කරණ මාර්ගය',
-        'content' => 'ශ්‍රී ලංකාවේ ආර්ථිකය සම්බන්ධයෙන් නව ප්‍රතිසංස්කරණ මාර්ගයක් ක්‍රියාත්මක කිරීමට රජය සූදානම් වෙමින් පවතී. මෙම ප්‍රතිසංස්කරණ මගින් රටේ ආර්ථික ස්ථාවරත්වය වැඩි දියුණු කිරීමට අපේක්ෂා කෙරේ.
+if ($article_id <= 0) {
+    redirect('index_db.php');
+}
 
-ආර්ථික ප්‍රතිපත්ති සම්බන්ධ රාජ්‍ය ප්‍රතිපත්ති අනුව, රටේ සම්පත් කළමනාකරණය වඩාත් කාර්යක්ෂම ආකාරයකට සිදු කිරීමට පියවර ගනු ඇත. මේ සම්බන්ධයෙන් ප්‍රධානම වශයෙන් රටේ කර්මාන්ත ක්ෂේත්‍රය දියුණු කිරීම, කෘෂිකර්ම ක්ෂේත්‍රයේ නවීකරණය සහ සේවා ක්ෂේත්‍රයේ පුළුල් කිරීම ඇතුළත් වේ.
+try {
+    $db = new Database();
 
-ආර්ථික අමාත්‍යවරයාගේ ප්‍රකාශයකට අනුව, මෙම ප්‍රතිසංස්කරණ වැඩසටහන තුළින් අදාළ ක්ෂේත්‍රවල රැකියා අවස්ථා වැඩි කිරීමට හැකි වනු ඇත. ඊට අමතරව විදේශ ආයෝජන ආකර්ෂණය කර ගැනීම සහ අපනයන ආදායම වැඩි කිරීම මගින් රටේ ආර්ථික තත්ත්වය සාධාරණීකරණය කිරීමට අපේක්ෂා කෙරේ.
+    // Get article details
+    $article = $db->getArticle($article_id);
 
-මෙම ප්‍රතිසංස්කරණ වැඩසටහන ක්‍රියාත්මක කිරීම සම්බන්ධයෙන් ජාත්‍යන්තර මූල්‍ය අරමුදල සහ ලෝක බැංකුව වැනි ආයතනවල සහයෝගය ලබා ගැනීමට රජය කටයුතු කරමින් සිටී.',
-        'category' => 'දේශපාලන',
-        'date' => '2025 ජූලි 13',
-        'author' => 'ප්‍රවෘත්ති කණ්ඩායම',
-        'image' => 'https://via.placeholder.com/800x400/f8f9fa/6c757d?text=Economic+Reform',
-        'tags' => ['ආර්ථිකය', 'ප්‍රතිසංස්කරණ', 'ආර්ථික ප්‍රතිපත්ති', 'රජය']
-    ],
-    2 => [
-        'title' => 'ක්‍රිකට් ලෝක කුසලානයේ ශ්‍රී ලංකා කණ්ඩායම',
-        'content' => 'ශ්‍රී ලංකා ක්‍රිකට් කණ්ඩායම නැවත ලෝක කුසලානයට සූදානම් වෙමින් පවතී. පසුගිය ක්‍රීඩා වාර කිහිපයේ දී ලැබූ අත්දැකීම් මත කණ්ඩායම තම ක්‍රීඩා ක්‍රමය වැඩි දියුණු කර ගෙන ඇත.
+    if (!$article || $article['status'] !== 'published') {
+        // Article not found or not published
+        redirect('index_db.php');
+    }
 
-අලුතින් කණ්ඩායමට එක් වූ තරුණ ක්‍රීඩකයන්ගේ දක්ෂතා මගින් කණ්ඩායමේ ශක්තිය වැඩි කර ගැනීමට හැකි වී ඇත. ජාතික ක්‍රිකට් කණ්ඩායමේ නායකයාගේ මඟ පෙන්වීම සහ ප්‍රශික්ෂක මණ්ඩලයේ වෘත්තිමය අධ්‍යාපනය තුළින් කණ්ඩායම හොඳ කාර්ය සාධනයක් සිදු කිරීමට සූදානම් වෙමින් සිටී.',
-        'category' => 'ක්‍රීඩා',
-        'date' => '2025 ජූලි 13',
-        'author' => 'ක්‍රීඩා වාර්තාකරු',
-        'image' => 'https://via.placeholder.com/800x400/f8f9fa/6c757d?text=Cricket+Team',
-        'tags' => ['ක්‍රිකට්', 'ලෝක කුසලානය', 'ශ්‍රී ලංකා', 'ක්‍රීඩා']
-    ]
-];
+    // Increment view count
+    $db->incrementViews($article_id);
 
-$article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1];
+    // Get related articles from same category
+    $related_articles = [];
+    if ($article['category_id']) {
+        $category_articles = $db->getArticlesByCategory($article['category_slug'], 1, 4);
+        $related_articles = array_filter($category_articles, function($a) use ($article_id) {
+            return $a['id'] != $article_id;
+        });
+        $related_articles = array_slice($related_articles, 0, 3);
+    }
+
+    // Get popular articles for sidebar
+    $popular_articles = $db->getPopularArticles(3);
+
+    // Get categories
+    $categories = $db->getCategories();
+
+} catch (Exception $e) {
+    error_log("Article page error: " . $e->getMessage());
+    redirect('index_db.php');
+}
+
 ?>
-
 <!DOCTYPE html>
 <html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($article['title']) ?> | සිංහල ප්‍රවෘත්ති</title>
-    <meta name="description" content="<?= htmlspecialchars(substr(strip_tags($article['content']), 0, 160)) ?>">
+    <title><?= htmlspecialchars($article['title']) ?> | <?= SITE_TITLE ?></title>
+    <meta name="description" content="<?= htmlspecialchars(substr(strip_tags($article['summary']), 0, 160)) ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($article['title']) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($article['summary']) ?>">
+    <meta property="og:image" content="<?= htmlspecialchars($article['image_url'] ?? '') ?>">
+    <meta property="og:url" content="<?= SITE_URL ?>/article_db.php?id=<?= $article_id ?>">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,21 +66,23 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <h1><a href="index.php" style="text-decoration: none; color: inherit;">සිංහල ප්‍රවෘත්ති</a></h1>
+                    <h1><a href="index_db.php" style="text-decoration: none; color: inherit;"><?= SITE_TITLE ?></a></h1>
                 </div>
                 <nav class="nav">
                     <ul class="nav-list">
-                        <li><a href="index.php">මුල් පිටුව</a></li>
-                        <li><a href="category.php?cat=politics">දේශපාලන</a></li>
-                        <li><a href="category.php?cat=sports">ක්‍රීඩා</a></li>
-                        <li><a href="category.php?cat=technology">තාක්ෂණය</a></li>
-                        <li><a href="category.php?cat=business">ව්‍යාපාර</a></li>
-                        <li><a href="category.php?cat=entertainment">විනෝදාස්වාදය</a></li>
+                        <li><a href="index_db.php">මුල් පිටුව</a></li>
+                        <li><a href="category_db.php?cat=politics">දේශපාලන</a></li>
+                        <li><a href="category_db.php?cat=sports">ක්‍රීඩා</a></li>
+                        <li><a href="category_db.php?cat=technology">තාක්ෂණය</a></li>
+                        <li><a href="category_db.php?cat=business">ව්‍යාපාර</a></li>
+                        <li><a href="category_db.php?cat=entertainment">විනෝදාස්වාදය</a></li>
                     </ul>
                 </nav>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="ප්‍රවෘත්ති සොයන්න...">
-                    <button type="button" id="searchBtn">සොයන්න</button>
+                    <form action="search_db.php" method="GET">
+                        <input type="text" name="q" id="searchInput" placeholder="ප්‍රවෘත්ති සොයන්න..." required>
+                        <button type="submit" id="searchBtn">සොයන්න</button>
+                    </form>
                 </div>
                 <button class="mobile-menu-toggle" id="mobileMenuToggle">
                     <span></span>
@@ -81,8 +96,8 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
         <div class="container">
-            <a href="index.php">මුල් පිටුව</a> &gt;
-            <a href="category.php?cat=<?= strtolower($article['category']) ?>"><?= $article['category'] ?></a> &gt;
+            <a href="index_db.php">මුල් පිටුව</a> &gt;
+            <a href="category_db.php?cat=<?= htmlspecialchars($article['category_slug']) ?>"><?= htmlspecialchars($article['category_name']) ?></a> &gt;
             <span><?= htmlspecialchars($article['title']) ?></span>
         </div>
     </nav>
@@ -95,11 +110,19 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
                     <!-- Article Header -->
                     <header class="article-header">
                         <div class="article-meta">
-                            <span class="category"><?= $article['category'] ?></span>
-                            <span class="date"><?= $article['date'] ?></span>
-                            <span class="author">කතුර: <?= $article['author'] ?></span>
+                            <span class="category"><?= htmlspecialchars($article['category_name']) ?></span>
+                            <span class="date"><?= format_date($article['published_at'], 'Y ජූලි d') ?></span>
+                            <span class="author">කතුර: <?= htmlspecialchars($article['author_name']) ?></span>
+                            <span class="views"><?= $article['views'] ?> බැලීම්</span>
                         </div>
                         <h1 class="article-title"><?= htmlspecialchars($article['title']) ?></h1>
+
+                        <!-- Summary -->
+                        <?php if (!empty($article['summary'])): ?>
+                            <div class="article-summary">
+                                <p><?= htmlspecialchars($article['summary']) ?></p>
+                            </div>
+                        <?php endif; ?>
 
                         <!-- Social Share -->
                         <div class="article-share">
@@ -130,93 +153,130 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
                     </header>
 
                     <!-- Article Image -->
-                    <div class="article-image">
-                        <img src="<?= $article['image'] ?>" alt="<?= htmlspecialchars($article['title']) ?>">
-                    </div>
+                    <?php if (!empty($article['image_url'])): ?>
+                        <div class="article-image">
+                            <img src="<?= htmlspecialchars($article['image_url']) ?>" alt="<?= htmlspecialchars($article['title']) ?>">
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Article Body -->
                     <div class="article-body">
                         <?php
                         // Convert line breaks to paragraphs
-                        $paragraphs = explode("\n\n", $article['content']);
+                        $content = htmlspecialchars($article['content']);
+                        $paragraphs = explode("\n\n", $content);
                         foreach ($paragraphs as $paragraph) {
                             if (trim($paragraph)) {
-                                echo '<p>' . nl2br(htmlspecialchars(trim($paragraph))) . '</p>';
+                                echo '<p>' . nl2br(trim($paragraph)) . '</p>';
                             }
                         }
                         ?>
                     </div>
 
-                    <!-- Article Tags -->
-                    <div class="article-tags">
-                        <strong>ටැග්:</strong>
-                        <?php foreach ($article['tags'] as $tag): ?>
-                            <span class="tag"><?= htmlspecialchars($tag) ?></span>
-                        <?php endforeach; ?>
-                    </div>
+                    <!-- Article Footer -->
+                    <footer class="article-footer">
+                        <div class="article-info">
+                            <p><strong>ප්‍රකාශන දිනය:</strong> <?= format_date($article['published_at'], 'Y ජූලි d, H:i') ?></p>
+                            <p><strong>අවසන් වරට යාවත්කාලීන:</strong> <?= format_date($article['updated_at'], 'Y ජූලි d, H:i') ?></p>
+                            <p><strong>ප්‍රවර්ගය:</strong> <a href="category_db.php?cat=<?= htmlspecialchars($article['category_slug']) ?>"><?= htmlspecialchars($article['category_name']) ?></a></p>
+                        </div>
+                    </footer>
 
                     <!-- Navigation -->
                     <div class="article-navigation">
-                        <a href="article.php?id=<?= $article_id > 1 ? $article_id - 1 : count($articles) ?>" class="prev-article">&larr; පෙර ප්‍රවෘත්තිය</a>
-                        <a href="article.php?id=<?= $article_id < count($articles) ? $article_id + 1 : 1 ?>" class="next-article">ඊළඟ ප්‍රවෘත්තිය &rarr;</a>
+                        <?php
+                        // Get previous and next articles
+                        try {
+                            $prev_article = $db->getAdjacentArticle($article_id, 'prev');
+                            $next_article = $db->getAdjacentArticle($article_id, 'next');
+                        } catch (Exception $e) {
+                            $prev_article = null;
+                            $next_article = null;
+                        }
+                        ?>
+
+                        <div class="nav-links">
+                            <?php if ($prev_article): ?>
+                                <a href="article_db.php?id=<?= $prev_article['id'] ?>" class="prev-article">
+                                    <span class="nav-label">පෙර ප්‍රවෘත්තිය</span>
+                                    <span class="nav-title"><?= htmlspecialchars($prev_article['title']) ?></span>
+                                </a>
+                            <?php endif; ?>
+
+                            <?php if ($next_article): ?>
+                                <a href="article_db.php?id=<?= $next_article['id'] ?>" class="next-article">
+                                    <span class="nav-label">ඊළඟ ප්‍රවෘත්තිය</span>
+                                    <span class="nav-title"><?= htmlspecialchars($next_article['title']) ?></span>
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </article>
 
                 <!-- Sidebar -->
                 <aside class="article-sidebar">
                     <!-- Related Articles -->
-                    <div class="widget">
-                        <h3 class="widget-title">අදාළ ප්‍රවෘත්ති</h3>
-                        <div class="related-articles">
-                            <?php
-                            // Show other articles as related
-                            $related_count = 0;
-                            foreach ($articles as $id => $related_article) {
-                                if ($id != $article_id && $related_count < 3) {
-                                    $related_count++;
-                            ?>
-                                <article class="related-item">
-                                    <img src="<?= $related_article['image'] ?>" alt="<?= htmlspecialchars($related_article['title']) ?>">
-                                    <div class="related-content">
-                                        <h4><a href="article.php?id=<?= $id ?>"><?= htmlspecialchars($related_article['title']) ?></a></h4>
-                                        <span class="date"><?= $related_article['date'] ?></span>
-                                    </div>
-                                </article>
-                            <?php
-                                }
-                            }
-                            ?>
+                    <?php if (!empty($related_articles)): ?>
+                        <div class="widget">
+                            <h3 class="widget-title">අදාළ ප්‍රවෘත්ති</h3>
+                            <div class="related-articles">
+                                <?php foreach ($related_articles as $related): ?>
+                                    <article class="related-item">
+                                        <img src="<?= htmlspecialchars($related['image_url'] ?? 'https://via.placeholder.com/80x60/f8f9fa/6c757d?text=News') ?>"
+                                             alt="<?= htmlspecialchars($related['title']) ?>">
+                                        <div class="related-content">
+                                            <h4><a href="article_db.php?id=<?= $related['id'] ?>"><?= htmlspecialchars($related['title']) ?></a></h4>
+                                            <span class="date"><?= format_date($related['published_at'], 'ජූලි d') ?></span>
+                                        </div>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <!-- Popular News -->
                     <div class="widget">
                         <h3 class="widget-title">ජනප්‍රිය ප්‍රවෘත්ති</h3>
                         <div class="popular-news">
-                            <article class="popular-item">
-                                <img src="https://via.placeholder.com/80x60/f8f9fa/6c757d?text=News" alt="ප්‍රවෘත්තිය">
-                                <div class="popular-content">
-                                    <h4><a href="article.php?id=6">ජනාධිපතිවරණය සම්බන්ධ නව ප්‍රකාශනයක්</a></h4>
-                                    <span class="date">ජූලි 10</span>
-                                </div>
-                            </article>
-                            <article class="popular-item">
-                                <img src="https://via.placeholder.com/80x60/f8f9fa/6c757d?text=News" alt="ප්‍රවෘත්තිය">
-                                <div class="popular-content">
-                                    <h4><a href="article.php?id=7">කාලගුණ විද්‍යා දෙපාර්තමේන්තුවේ අනතුරු ඇඟවීමක්</a></h4>
-                                    <span class="date">ජූලි 09</span>
-                                </div>
-                            </article>
+                            <?php foreach ($popular_articles as $popular): ?>
+                                <article class="popular-item">
+                                    <img src="<?= htmlspecialchars($popular['image_url'] ?? 'https://via.placeholder.com/80x60/f8f9fa/6c757d?text=News') ?>"
+                                         alt="<?= htmlspecialchars($popular['title']) ?>">
+                                    <div class="popular-content">
+                                        <h4><a href="article_db.php?id=<?= $popular['id'] ?>"><?= htmlspecialchars($popular['title']) ?></a></h4>
+                                        <span class="date"><?= format_date($popular['published_at'], 'ජූලි d') ?></span>
+                                    </div>
+                                </article>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
-                    <!-- Advertisement Space -->
+                    <!-- Categories -->
                     <div class="widget">
-                        <h3 class="widget-title">ප්‍රචාරණ</h3>
-                        <div class="ad-space" style="background: #f8f9fa; padding: 60px 20px; text-align: center; color: #6c757d; border-radius: 4px;">
-                            ප්‍රචාරණ ස්ථානය
-                        </div>
+                        <h3 class="widget-title">ප්‍රවර්ග</h3>
+                        <ul class="category-list">
+                            <?php foreach ($categories as $category): ?>
+                                <li>
+                                    <a href="category_db.php?cat=<?= htmlspecialchars($category['slug']) ?>"
+                                       <?= $category['id'] == $article['category_id'] ? 'class="current"' : '' ?>>
+                                        <?= htmlspecialchars($category['name_sinhala']) ?>
+                                        <span>(<?= $category['article_count'] ?>)</span>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
+
+                    <!-- Admin Links (if logged in) -->
+                    <?php if (is_logged_in()): ?>
+                        <div class="widget">
+                            <h3 class="widget-title">Admin</h3>
+                            <div class="admin-links">
+                                <a href="admin-edit-article_db.php?id=<?= $article_id ?>" class="admin-link">Edit Article</a>
+                                <a href="admin-dashboard_db.php" class="admin-link">Dashboard</a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </aside>
             </div>
         </div>
@@ -227,25 +287,24 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>සිංහල ප්‍රවෘත්ති</h3>
-                    <p>ශ්‍රී ලංකාවේ ප්‍රධාන ප්‍රවෘත්ති වෙබ් අඩවිය. විශ්වසනීය හා නිරවද්‍ය ප්‍රවෘත්ති ඔබ වෙත ගෙන එමු.</p>
+                    <h3><?= SITE_TITLE ?></h3>
+                    <p><?= SITE_TAGLINE ?>. විශ්වසනීය හා නිරවද්‍ය ප්‍රවෘත්ති ඔබ වෙත ගෙන එමු.</p>
                 </div>
                 <div class="footer-section">
                     <h4>ප්‍රවර්ග</h4>
                     <ul>
-                        <li><a href="category.php?cat=politics">දේශපාලන</a></li>
-                        <li><a href="category.php?cat=sports">ක්‍රීඩා</a></li>
-                        <li><a href="category.php?cat=technology">තාක්ෂණය</a></li>
-                        <li><a href="category.php?cat=business">ව්‍යාපාර</a></li>
+                        <?php foreach (array_slice($categories, 0, 4) as $category): ?>
+                            <li><a href="category_db.php?cat=<?= htmlspecialchars($category['slug']) ?>"><?= htmlspecialchars($category['name_sinhala']) ?></a></li>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>අප ගැන</h4>
                     <ul>
-                        <li><a href="about.php">අප ගැන</a></li>
-                        <li><a href="contact.php">අප සම්බන්ධ කරගන්න</a></li>
-                        <li><a href="privacy.php">පෞද්ගලිකත්ව ප්‍රතිපත්තිය</a></li>
-                        <li><a href="terms.php">භාවිත කිරීමේ නියම</a></li>
+                        <li><a href="about.html">අප ගැන</a></li>
+                        <li><a href="contact.html">අප සම්බන්ධ කරගන්න</a></li>
+                        <li><a href="privacy.html">පෞද්ගලිකත්ව ප්‍රතිපත්තිය</a></li>
+                        <li><a href="terms.html">භාවිත කිරීමේ නියම</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -259,10 +318,34 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 සිංහල ප්‍රවෘත්ති. සියලුම හිමිකම් ඇවිරිණි.</p>
+                <p>&copy; 2025 <?= SITE_TITLE ?>. සියලුම හිමිකම් ඇවිරිණි.</p>
             </div>
         </div>
     </footer>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index_db.php" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏠</span>
+            <span class="bottom-nav-label">මුල්</span>
+        </a>
+        <a href="category_db.php?cat=politics" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏛️</span>
+            <span class="bottom-nav-label">දේශපාලන</span>
+        </a>
+        <a href="category_db.php?cat=sports" class="bottom-nav-item">
+            <span class="bottom-nav-icon">⚽</span>
+            <span class="bottom-nav-label">ක්‍රීඩා</span>
+        </a>
+        <a href="search_db.php" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🔍</span>
+            <span class="bottom-nav-label">සොයන්න</span>
+        </a>
+        <a href="about.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">ℹ️</span>
+            <span class="bottom-nav-label">අප ගැන</span>
+        </a>
+    </nav>
 
     <script src="assets/js/script.js"></script>
     <script>
@@ -278,7 +361,7 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
         }
 
         function shareToTwitter(title, url) {
-            const text = `${title} - සිංහල ප්‍රවෘත්ති`;
+            const text = `${title} - <?= SITE_TITLE ?>`;
             const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
             openShareWindow(shareUrl, 'Twitter');
         }
@@ -383,11 +466,33 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
             flex-wrap: wrap;
         }
 
+        .article-meta .category {
+            background: #2c5aa0;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .article-meta .date,
+        .article-meta .author,
+        .article-meta .views {
+            color: #666;
+        }
+
         .article-title {
             font-size: 2.2rem;
             line-height: 1.3;
             margin-bottom: 1rem;
             color: #333;
+        }
+
+        .article-summary {
+            background: #f8f9fa;
+            border-left: 4px solid #2c5aa0;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
         }
 
         .article-share {
@@ -501,38 +606,75 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
             margin-bottom: 1.5rem;
         }
 
-        .article-tags {
-            padding: 1rem 0;
+        .article-footer {
             border-top: 1px solid #e9ecef;
+            padding-top: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .tag {
-            display: inline-block;
-            background: #e9ecef;
-            color: #495057;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            margin: 0.25rem 0.5rem 0.25rem 0;
+        .article-info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .article-info p {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .article-info a {
+            color: #2c5aa0;
+            text-decoration: none;
+        }
+
+        .article-info a:hover {
+            text-decoration: underline;
         }
 
         .article-navigation {
+            border-top: 1px solid #e9ecef;
+            padding-top: 1.5rem;
+        }
+
+        .nav-links {
             display: flex;
             justify-content: space-between;
-            padding-top: 1rem;
-            border-top: 1px solid #e9ecef;
+            gap: 2rem;
         }
 
-        .prev-article, .next-article {
-            color: #2c5aa0;
+        .prev-article,
+        .next-article {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
             text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
+            color: #333;
+            transition: background 0.3s ease;
         }
 
-        .prev-article:hover, .next-article:hover {
-            color: #1e3a72;
+        .prev-article:hover,
+        .next-article:hover {
+            background: #e9ecef;
+        }
+
+        .next-article {
+            text-align: right;
+        }
+
+        .nav-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-title {
+            font-weight: 500;
+            line-height: 1.3;
         }
 
         .article-sidebar {
@@ -583,11 +725,36 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
             color: #2c5aa0;
         }
 
-        .ad-space {
-            min-height: 200px;
+        .related-content .date {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .category-list li a.current {
+            color: #2c5aa0;
+            font-weight: 600;
+        }
+
+        .admin-links {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .admin-link {
+            display: block;
+            padding: 0.5rem 1rem;
+            background: #2c5aa0;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .admin-link:hover {
+            background: #1e3a72;
         }
 
         @media (max-width: 768px) {
@@ -625,9 +792,12 @@ $article = isset($articles[$article_id]) ? $articles[$article_id] : $articles[1]
                 width: 100%;
             }
 
-            .article-navigation {
+            .nav-links {
                 flex-direction: column;
-                gap: 1rem;
+            }
+
+            .next-article {
+                text-align: left;
             }
         }
     </style>

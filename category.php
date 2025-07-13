@@ -1,115 +1,53 @@
 <?php
+require_once 'includes/config.php';
+
 // Get category from URL
-$category = isset($_GET['cat']) ? $_GET['cat'] : 'politics';
+$category_slug = sanitize_input($_GET['cat'] ?? '');
 
-// Category mappings
-$categories = [
-    'politics' => 'දේශපාලන',
-    'sports' => 'ක්‍රීඩා',
-    'technology' => 'තාක්ෂණය',
-    'business' => 'ව්‍යාපාර',
-    'entertainment' => 'විනෝදාස්වාදය',
-    'health' => 'සෞඛ්‍ය'
-];
+if (empty($category_slug)) {
+    redirect('index.php');
+}
 
-$category_name = isset($categories[$category]) ? $categories[$category] : 'දේශපාලන';
+try {
+    $db = new Database();
 
-// Sample category articles (in real application, this would come from database)
-$category_articles = [
-    'politics' => [
-        [
-            'id' => 1,
-            'title' => 'ශ්‍රී ලංකාවේ නව ආර්ථික ප්‍රතිසංස්කරණ මාර්ගය',
-            'summary' => 'ශ්‍රී ලංකාවේ ආර්ථිකය සම්බන්ධයෙන් නව ප්‍රතිසංස්කරණ මාර්ගයක් ක්‍රියාත්මක කිරීමට රජය සූදානම් වෙමින් පවතී.',
-            'date' => '2025 ජූලි 13',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Politics+1'
-        ],
-        [
-            'id' => 9,
-            'title' => 'ජනාධිපතිවරණය සම්බන්ධ නව ප්‍රකාශනයක්',
-            'summary' => 'ඉදිරි ජනාධිපතිවරණය සම්බන්ධයෙන් මැතිවරණ කොමිසමේ නව ප්‍රකාශනයක් නිකුත් කර ඇත.',
-            'date' => '2025 ජූලි 12',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Politics+2'
-        ],
-        [
-            'id' => 10,
-            'title' => 'පාර්ලිමේන්තුවේ නව සභාගතයක්',
-            'summary' => 'පාර්ලිමේන්තුව අද දින සභාගත වන අතර ජාතික වැදගත්කම සහිත කරුණු සාකච්ඡා කිරීමට නියමිතයි.',
-            'date' => '2025 ජූලි 11',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Politics+3'
-        ]
-    ],
-    'sports' => [
-        [
-            'id' => 2,
-            'title' => 'ක්‍රිකට් ලෝක කුසලානයේ ශ්‍රී ලංකා කණ්ඩායම',
-            'summary' => 'ශ්‍රී ලංකා ක්‍රිකට් කණ්ඩායම නැවත ලෝක කුසලානයට සූදානම් වෙමින් පවතී.',
-            'date' => '2025 ජූලි 13',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Cricket'
-        ],
-        [
-            'id' => 11,
-            'title' => 'පාපන්දු ලීගයේ අලුත් වාරය',
-            'summary' => 'ශ්‍රී ලංකා පාපන්දු ලීගයේ නව වාරය ආරම්භ වීමට නියමිතය.',
-            'date' => '2025 ජූලි 12',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Football'
-        ],
-        [
-            'id' => 12,
-            'title' => 'ජාතික ක්‍රීඩා උත්සවය 2025',
-            'summary' => 'ජාතික ක්‍රීඩා උත්සවය 2025 සඳහා සූදානම් වැඩ ආරම්භ වී ඇත.',
-            'date' => '2025 ජූලි 10',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Sports+Festival'
-        ]
-    ],
-    'technology' => [
-        [
-            'id' => 3,
-            'title' => 'නව තාක්ෂණික නවෝත්පාදන ආයතනයක් පිහිටුවීම',
-            'summary' => 'ශ්‍රී ලංකාවේ තාක්ෂණික ක්ෂේත්‍රය දියුණු කිරීම සඳහා නව ආයතනයක් පිහිටුවීමට කටයුතු ආරම්භ වී ඇත.',
-            'date' => '2025 ජූලි 12',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Technology'
-        ]
-    ],
-    'business' => [
-        [
-            'id' => 4,
-            'title' => 'නව ව්‍යාපාරික ප්‍රතිපත්තියක් ක්‍රියාත්මක කිරීම',
-            'summary' => 'රටේ ව්‍යාපාරික ක්ෂේත්‍රය සදහා නව ප්‍රතිපත්තියක් ක්‍රියාත්මක කිරීමට අදාළ අධිකාරීන් කටයුතු කරමින් සිටිති.',
-            'date' => '2025 ජූලි 12',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Business'
-        ]
-    ],
-    'entertainment' => [
-        [
-            'id' => 5,
-            'title' => 'කලාකරුවන්ගේ නව සංගීත ප්‍රසංගයක්',
-            'summary' => 'ශ්‍රී ලංකාවේ ප්‍රසිද්ධ කලාකරුවන් කිහිප දෙනෙකු සහභාගි වන නව සංගීත ප්‍රසංගයක් සංවිධානය කෙරේ.',
-            'date' => '2025 ජූලි 11',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Entertainment'
-        ]
-    ],
-    'health' => [
-        [
-            'id' => 13,
-            'title' => 'සෞඛ්‍ය ක්ෂේත්‍රයේ නව දියුණුවක්',
-            'summary' => 'රටේ සෞඛ්‍ය ක්ෂේත්‍රය වැඩි දියුණු කිරීම සඳහා නව වැඩසටහනක් ආරම්භ කර ඇත.',
-            'date' => '2025 ජූලි 10',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Health'
-        ]
-    ]
-];
+    // Get category info
+    $category = $db->getCategoryBySlug($category_slug);
 
-$articles = isset($category_articles[$category]) ? $category_articles[$category] : $category_articles['politics'];
+    if (!$category) {
+        // Category not found, redirect to homepage
+        redirect('index.php');
+    }
+
+    // Get pagination parameters
+    $page = max(1, (int)($_GET['page'] ?? 1));
+    $limit = ARTICLES_PER_PAGE;
+
+    // Get articles for this category
+    $articles = $db->getArticlesByCategory($category_slug, $page, $limit);
+
+    // Get all categories for sidebar
+    $all_categories = $db->getCategories();
+
+    // Get popular articles
+    $popular_articles = $db->getPopularArticles(3);
+
+} catch (Exception $e) {
+    error_log("Category page error: " . $e->getMessage());
+    $category = null;
+    $articles = [];
+    $all_categories = [];
+    $popular_articles = [];
+}
+
 ?>
-
 <!DOCTYPE html>
 <html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $category_name ?> ප්‍රවෘත්ති | සිංහල ප්‍රවෘත්ති</title>
-    <meta name="description" content="<?= $category_name ?> ප්‍රවර්ගයේ නවතම සිංහල ප්‍රවෘත්ති">
+    <title><?= $category ? htmlspecialchars($category['name_sinhala']) . ' ප්‍රවෘත්ති' : 'ප්‍රවර්ගය' ?> | <?= SITE_TITLE ?></title>
+    <meta name="description" content="<?= $category ? htmlspecialchars($category['name_sinhala']) . ' ප්‍රවර්ගයේ නවතම සිංහල ප්‍රවෘත්ති' : 'ප්‍රවර්ගය' ?>">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,21 +59,23 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <h1><a href="index.php" style="text-decoration: none; color: inherit;">සිංහල ප්‍රවෘත්ති</a></h1>
+                    <h1><a href="index.php" style="text-decoration: none; color: inherit;"><?= SITE_TITLE ?></a></h1>
                 </div>
                 <nav class="nav">
                     <ul class="nav-list">
                         <li><a href="index.php">මුල් පිටුව</a></li>
-                        <li><a href="category.php?cat=politics" <?= $category === 'politics' ? 'class="active"' : '' ?>>දේශපාලන</a></li>
-                        <li><a href="category.php?cat=sports" <?= $category === 'sports' ? 'class="active"' : '' ?>>ක්‍රීඩා</a></li>
-                        <li><a href="category.php?cat=technology" <?= $category === 'technology' ? 'class="active"' : '' ?>>තාක්ෂණය</a></li>
-                        <li><a href="category.php?cat=business" <?= $category === 'business' ? 'class="active"' : '' ?>>ව්‍යාපාර</a></li>
-                        <li><a href="category.php?cat=entertainment" <?= $category === 'entertainment' ? 'class="active"' : '' ?>>විනෝදාස්වාදය</a></li>
+                        <li><a href="category.php?cat=politics" <?= $category_slug === 'politics' ? 'class="active"' : '' ?>>දේශපාලන</a></li>
+                        <li><a href="category.php?cat=sports" <?= $category_slug === 'sports' ? 'class="active"' : '' ?>>ක්‍රීඩා</a></li>
+                        <li><a href="category.php?cat=technology" <?= $category_slug === 'technology' ? 'class="active"' : '' ?>>තාක්ෂණය</a></li>
+                        <li><a href="category.php?cat=business" <?= $category_slug === 'business' ? 'class="active"' : '' ?>>ව්‍යාපාර</a></li>
+                        <li><a href="category.php?cat=entertainment" <?= $category_slug === 'entertainment' ? 'class="active"' : '' ?>>විනෝදාස්වාදය</a></li>
                     </ul>
                 </nav>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="ප්‍රවෘත්ති සොයන්න...">
-                    <button type="button" id="searchBtn">සොයන්න</button>
+                    <form action="search.php" method="GET">
+                        <input type="text" name="q" id="searchInput" placeholder="ප්‍රවෘත්ති සොයන්න..." required>
+                        <button type="submit" id="searchBtn">සොයන්න</button>
+                    </form>
                 </div>
                 <button class="mobile-menu-toggle" id="mobileMenuToggle">
                     <span></span>
@@ -150,7 +90,7 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
     <nav class="breadcrumb">
         <div class="container">
             <a href="index.php">මුල් පිටුව</a> &gt;
-            <span><?= $category_name ?> ප්‍රවෘත්ති</span>
+            <span><?= $category ? htmlspecialchars($category['name_sinhala']) : 'ප්‍රවර්ගය' ?> ප්‍රවෘත්ති</span>
         </div>
     </nav>
 
@@ -158,61 +98,74 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
     <main class="main">
         <div class="container">
             <div class="category-header">
-                <h1 class="category-title"><?= $category_name ?> ප්‍රවෘත්ති</h1>
+                <h1 class="category-title"><?= $category ? htmlspecialchars($category['name_sinhala']) : 'ප්‍රවර්ගය' ?> ප්‍රවෘත්ති</h1>
                 <p class="category-description">
-                    <?php
-                    $descriptions = [
-                        'politics' => 'ශ්‍රී ලංකාවේ දේශපාලන ක්ෂේත්‍රයේ නවතම ප්‍රවර්තන සහ සිදුවීම්',
-                        'sports' => 'ක්‍රීඩා ක්ෂේත්‍රයේ නවතම ප්‍රවෘත්ති සහ ක්‍රීඩා ප්‍රතිඵල',
-                        'technology' => 'තාක්ෂණික දියුණුව සහ නවෝත්පාදන පිළිබඳ ප්‍රවෘත්ති',
-                        'business' => 'ව්‍යාපාරික ක්ෂේත්‍රයේ නවතම ප්‍රවර්තන සහ ආර්ථික ප්‍රවෘත්ති',
-                        'entertainment' => 'විනෝදාස්වාදය සහ සංස්කෘතික සිදුවීම් පිළිබඳ ප්‍රවෘත්ති',
-                        'health' => 'සෞඛ්‍ය ක්ෂේත්‍රයේ නවතම ප්‍රවර්තන සහ සෞඛ්‍ය උපදෙස්'
-                    ];
-                    echo isset($descriptions[$category]) ? $descriptions[$category] : $descriptions['politics'];
-                    ?>
+                    <?php if ($category): ?>
+                        <?= htmlspecialchars($category['description'] ?? '') ?>
+                        <span class="article-count">(<?= $category['article_count'] ?> ප්‍රවෘත්ති)</span>
+                    <?php else: ?>
+                        ප්‍රවර්ගය සොයා ගත නොහැක
+                    <?php endif; ?>
                 </p>
             </div>
 
             <div class="content-grid">
                 <!-- Articles List -->
                 <section class="articles-list">
-                    <div class="category-filters">
-                        <label for="sortBy">පෙරළන්න:</label>
-                        <select id="sortBy" onchange="sortArticles(this.value)">
-                            <option value="newest">නවතම පළමුව</option>
-                            <option value="oldest">පැරණිතම පළමුව</option>
-                            <option value="popular">ජනප්‍රිය පළමුව</option>
-                        </select>
-                    </div>
+                    <?php if (!empty($articles)): ?>
+                        <div class="category-filters">
+                            <label for="sortBy">පෙරළන්න:</label>
+                            <select id="sortBy" onchange="sortArticles(this.value)">
+                                <option value="newest">නවතම පළමුව</option>
+                                <option value="oldest">පැරණිතම පළමුව</option>
+                                <option value="popular">ජනප්‍රිය පළමුව</option>
+                            </select>
+                        </div>
 
-                    <div class="articles-grid" id="articlesGrid">
-                        <?php foreach ($articles as $article): ?>
-                            <article class="category-article">
-                                <div class="article-image">
-                                    <img src="<?= $article['image'] ?>" alt="<?= htmlspecialchars($article['title']) ?>">
-                                    <div class="article-category"><?= $category_name ?></div>
-                                </div>
-                                <div class="article-content">
-                                    <div class="article-meta">
-                                        <span class="date"><?= $article['date'] ?></span>
+                        <div class="articles-grid" id="articlesGrid">
+                            <?php foreach ($articles as $article): ?>
+                                <article class="category-article">
+                                    <div class="article-image">
+                                        <img src="<?= htmlspecialchars($article['image_url'] ?? 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=News') ?>"
+                                             alt="<?= htmlspecialchars($article['title']) ?>">
+                                        <div class="article-category"><?= htmlspecialchars($article['category_name']) ?></div>
                                     </div>
-                                    <h2><a href="article.php?id=<?= $article['id'] ?>"><?= htmlspecialchars($article['title']) ?></a></h2>
-                                    <p><?= htmlspecialchars($article['summary']) ?></p>
-                                    <a href="article.php?id=<?= $article['id'] ?>" class="read-more">සම්පූර්ණයෙන් කියවන්න</a>
-                                </div>
-                            </article>
-                        <?php endforeach; ?>
-                    </div>
+                                    <div class="article-content">
+                                        <div class="article-meta">
+                                            <span class="date"><?= format_date($article['published_at'], 'Y ජූලි d') ?></span>
+                                            <span class="author">කතුර: <?= htmlspecialchars($article['author_name']) ?></span>
+                                        </div>
+                                        <h2><a href="article.php?id=<?= $article['id'] ?>"><?= htmlspecialchars($article['title']) ?></a></h2>
+                                        <p><?= htmlspecialchars($article['summary']) ?></p>
+                                        <a href="article.php?id=<?= $article['id'] ?>" class="read-more">සම්පූර්ණයෙන් කියවන්න</a>
+                                    </div>
+                                </article>
+                            <?php endforeach; ?>
+                        </div>
 
-                    <!-- Pagination -->
-                    <div class="pagination">
-                        <a href="#" class="page-link disabled">&laquo; පෙර</a>
-                        <a href="#" class="page-link active">1</a>
-                        <a href="#" class="page-link">2</a>
-                        <a href="#" class="page-link">3</a>
-                        <a href="#" class="page-link">ඊළඟ &raquo;</a>
-                    </div>
+                        <!-- Pagination -->
+                        <div class="pagination">
+                            <?php if ($page > 1): ?>
+                                <a href="?cat=<?= urlencode($category_slug) ?>&page=<?= $page - 1 ?>" class="page-link">&laquo; පෙර</a>
+                            <?php else: ?>
+                                <span class="page-link disabled">&laquo; පෙර</span>
+                            <?php endif; ?>
+
+                            <span class="page-link active"><?= $page ?></span>
+
+                            <?php if (count($articles) == $limit): ?>
+                                <a href="?cat=<?= urlencode($category_slug) ?>&page=<?= $page + 1 ?>" class="page-link">ඊළඟ &raquo;</a>
+                            <?php else: ?>
+                                <span class="page-link disabled">ඊළඟ &raquo;</span>
+                            <?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="no-articles">
+                            <h2>ප්‍රවෘත්ති නොමැත</h2>
+                            <p>මෙම ප්‍රවර්ගයේ ප්‍රවෘත්ති කිසිවක් නොමැත.</p>
+                            <a href="index.php" class="back-home">මුල් පිටුවට යන්න</a>
+                        </div>
+                    <?php endif; ?>
                 </section>
 
                 <!-- Sidebar -->
@@ -221,9 +174,14 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
                     <div class="widget">
                         <h3 class="widget-title">අනෙක් ප්‍රවර්ග</h3>
                         <ul class="other-categories">
-                            <?php foreach ($categories as $cat_key => $cat_name): ?>
-                                <?php if ($cat_key !== $category): ?>
-                                    <li><a href="category.php?cat=<?= $cat_key ?>"><?= $cat_name ?></a></li>
+                            <?php foreach ($all_categories as $cat): ?>
+                                <?php if ($cat['slug'] !== $category_slug): ?>
+                                    <li>
+                                        <a href="category.php?cat=<?= htmlspecialchars($cat['slug']) ?>">
+                                            <?= htmlspecialchars($cat['name_sinhala']) ?>
+                                            <span>(<?= $cat['article_count'] ?>)</span>
+                                        </a>
+                                    </li>
                                 <?php endif; ?>
                             <?php endforeach; ?>
                         </ul>
@@ -233,40 +191,43 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
                     <div class="widget">
                         <h3 class="widget-title">ජනප්‍රිය ප්‍රවෘත්ති</h3>
                         <div class="popular-news">
-                            <article class="popular-item">
-                                <img src="https://via.placeholder.com/80x60/f8f9fa/6c757d?text=News" alt="ප්‍රවෘත්තිය">
-                                <div class="popular-content">
-                                    <h4><a href="article.php?id=6">ජනාධිපතිවරණය සම්බන්ධ නව ප්‍රකාශනයක්</a></h4>
-                                    <span class="date">ජූලි 10</span>
-                                </div>
-                            </article>
-                            <article class="popular-item">
-                                <img src="https://via.placeholder.com/80x60/f8f9fa/6c757d?text=News" alt="ප්‍රවෘත්තිය">
-                                <div class="popular-content">
-                                    <h4><a href="article.php?id=7">කාලගුණ විද්‍යා දෙපාර්තමේන්තුවේ අනතුරු ඇඟවීමක්</a></h4>
-                                    <span class="date">ජූලි 09</span>
-                                </div>
-                            </article>
+                            <?php if (!empty($popular_articles)): ?>
+                                <?php foreach ($popular_articles as $article): ?>
+                                    <article class="popular-item">
+                                        <img src="<?= htmlspecialchars($article['image_url'] ?? 'https://via.placeholder.com/80x60/f8f9fa/6c757d?text=News') ?>"
+                                             alt="<?= htmlspecialchars($article['title']) ?>">
+                                        <div class="popular-content">
+                                            <h4><a href="article.php?id=<?= $article['id'] ?>"><?= htmlspecialchars($article['title']) ?></a></h4>
+                                            <span class="date"><?= format_date($article['published_at'], 'ජූලි d') ?></span>
+                                        </div>
+                                    </article>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p>ජනප්‍රිය ප්‍රවෘත්ති නොමැත</p>
+                            <?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Newsletter Signup -->
                     <div class="widget">
                         <h3 class="widget-title">ප්‍රවෘත්ති ලැබීම</h3>
-                        <form class="newsletter-form">
+                        <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
                             <p>නවතම ප්‍රවෘත්ති ඔබගේ ඊමේල් වෙත ලබා ගන්න</p>
                             <input type="email" placeholder="ඔබගේ ඊමේල් ලිපිනය" required>
                             <button type="submit">ලියාපදිංචි වන්න</button>
                         </form>
                     </div>
 
-                    <!-- Advertisement -->
-                    <div class="widget">
-                        <h3 class="widget-title">ප්‍රචාරණ</h3>
-                        <div class="ad-space" style="background: #f8f9fa; padding: 60px 20px; text-align: center; color: #6c757d; border-radius: 4px;">
-                            ප්‍රචාරණ ස්ථානය
+                    <!-- Admin Link (if logged in) -->
+                    <?php if (is_logged_in()): ?>
+                        <div class="widget">
+                            <h3 class="widget-title">Admin</h3>
+                            <div class="admin-links">
+                                <a href="admin-dashboard.php" class="admin-link">Admin Dashboard</a>
+                                <a href="admin-add-article.php" class="admin-link">Add Article</a>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 </aside>
             </div>
         </div>
@@ -277,25 +238,24 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>සිංහල ප්‍රවෘත්ති</h3>
-                    <p>ශ්‍රී ලංකාවේ ප්‍රධාන ප්‍රවෘත්ති වෙබ් අඩවිය. විශ්වසනීය හා නිරවද්‍ය ප්‍රවෘත්ති ඔබ වෙත ගෙන එමු.</p>
+                    <h3><?= SITE_TITLE ?></h3>
+                    <p><?= SITE_TAGLINE ?>. විශ්වසනීය හා නිරවද්‍ය ප්‍රවෘත්ති ඔබ වෙත ගෙන එමු.</p>
                 </div>
                 <div class="footer-section">
                     <h4>ප්‍රවර්ග</h4>
                     <ul>
-                        <li><a href="category.php?cat=politics">දේශපාලන</a></li>
-                        <li><a href="category.php?cat=sports">ක්‍රීඩා</a></li>
-                        <li><a href="category.php?cat=technology">තාක්ෂණය</a></li>
-                        <li><a href="category.php?cat=business">ව්‍යාපාර</a></li>
+                        <?php foreach (array_slice($all_categories, 0, 4) as $cat): ?>
+                            <li><a href="category.php?cat=<?= htmlspecialchars($cat['slug']) ?>"><?= htmlspecialchars($cat['name_sinhala']) ?></a></li>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>අප ගැන</h4>
                     <ul>
-                        <li><a href="about.php">අප ගැන</a></li>
-                        <li><a href="contact.php">අප සම්බන්ධ කරගන්න</a></li>
-                        <li><a href="privacy.php">පෞද්ගලිකත්ව ප්‍රතිපත්තිය</a></li>
-                        <li><a href="terms.php">භාවිත කිරීමේ නියම</a></li>
+                        <li><a href="about.html">අප ගැන</a></li>
+                        <li><a href="contact.html">අප සම්බන්ධ කරගන්න</a></li>
+                        <li><a href="privacy.html">පෞද්ගලිකත්ව ප්‍රතිපත්තිය</a></li>
+                        <li><a href="terms.html">භාවිත කිරීමේ නියම</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -309,10 +269,34 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 සිංහල ප්‍රවෘත්ති. සියලුම හිමිකම් ඇවිරිණි.</p>
+                <p>&copy; 2025 <?= SITE_TITLE ?>. සියලුම හිමිකම් ඇවිරිණි.</p>
             </div>
         </div>
     </footer>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index.php" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏠</span>
+            <span class="bottom-nav-label">මුල්</span>
+        </a>
+        <a href="category.php?cat=politics" class="bottom-nav-item <?= $category_slug === 'politics' ? 'active' : '' ?>">
+            <span class="bottom-nav-icon">🏛️</span>
+            <span class="bottom-nav-label">දේශපාලන</span>
+        </a>
+        <a href="category.php?cat=sports" class="bottom-nav-item <?= $category_slug === 'sports' ? 'active' : '' ?>">
+            <span class="bottom-nav-icon">⚽</span>
+            <span class="bottom-nav-label">ක්‍රීඩා</span>
+        </a>
+        <a href="search.php" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🔍</span>
+            <span class="bottom-nav-label">සොයන්න</span>
+        </a>
+        <a href="about.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">ℹ️</span>
+            <span class="bottom-nav-label">අප ගැන</span>
+        </a>
+    </nav>
 
     <script src="assets/js/script.js"></script>
     <script>
@@ -320,6 +304,14 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
             // In a real application, this would make an AJAX call to sort articles
             console.log('Sorting by:', sortBy);
             showNotification('ප්‍රවෘත්ති ' + (sortBy === 'newest' ? 'නවතම පරිදි' : sortBy === 'oldest' ? 'පැරණිතම පරිදි' : 'ජනප්‍රියතාව පරිදි') + ' පෙරළන ලදී');
+        }
+
+        function subscribeNewsletter(event) {
+            event.preventDefault();
+            const email = event.target.querySelector('input[type="email"]').value;
+            // In a real application, this would save to database
+            showNotification('ඔබගේ ඊමේල් ලිපිනය (' + email + ') සාර්ථකව ලියාපදිංචි කරන ලදී!', 'success');
+            event.target.reset();
         }
     </script>
 
@@ -357,6 +349,11 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
             color: #666;
             max-width: 600px;
             margin: 0 auto;
+        }
+
+        .article-count {
+            color: #2c5aa0;
+            font-weight: 500;
         }
 
         .category-filters {
@@ -444,6 +441,17 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
             line-height: 1.5;
         }
 
+        .category-article .article-meta {
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .category-article .article-meta .date,
+        .category-article .article-meta .author {
+            margin-right: 1rem;
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
@@ -476,6 +484,38 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
             cursor: not-allowed;
         }
 
+        .no-articles {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .no-articles h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .no-articles p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .back-home {
+            display: inline-block;
+            background: #2c5aa0;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .back-home:hover {
+            background: #1e3a72;
+        }
+
         .other-categories {
             list-style: none;
         }
@@ -489,7 +529,9 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
         }
 
         .other-categories li a {
-            display: block;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 0.75rem 0;
             text-decoration: none;
             color: #333;
@@ -498,6 +540,14 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
 
         .other-categories li a:hover {
             color: #2c5aa0;
+        }
+
+        .other-categories li a span {
+            background-color: #e9ecef;
+            color: #666;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
         }
 
         .newsletter-form {
@@ -532,6 +582,28 @@ $articles = isset($category_articles[$category]) ? $category_articles[$category]
         }
 
         .newsletter-form button:hover {
+            background: #1e3a72;
+        }
+
+        .admin-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .admin-link {
+            display: block;
+            padding: 0.5rem 1rem;
+            background: #2c5aa0;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .admin-link:hover {
             background: #1e3a72;
         }
 

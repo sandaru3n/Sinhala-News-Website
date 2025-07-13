@@ -3,12 +3,12 @@ require_once 'includes/config.php';
 
 // Check if user is logged in and has permission
 if (!is_editor_or_admin()) {
-    redirect('admin_db.php');
+    redirect('admin.php');
 }
 
 $article_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($article_id <= 0) {
-    redirect('admin-dashboard_db.php');
+    redirect('admin-dashboard.php');
 }
 
 $message = '';
@@ -71,7 +71,7 @@ try {
                         // Refresh article data
                         $article = $db->getArticle($article_id);
                         // Optionally redirect to dashboard
-                        redirect('admin-dashboard_db.php');
+                        redirect('admin-dashboard.php');
                     } else {
                         $error = 'ප්‍රවෘත්තිය යාවත්කාලීන කිරීමට නොහැකි විය';
                     }
@@ -116,11 +116,11 @@ $csrf_token = generate_csrf_token();
                     <span><?= SITE_TITLE ?></span>
                 </div>
                 <nav class="admin-nav">
-                    <a href="admin-dashboard_db.php">Dashboard</a>
-                    <a href="admin-add-article_db.php">නව ප්‍රවෘත්තිය</a>
-                    <a href="index_db.php" target="_blank">වෙබ් අඩවිය</a>
+                    <a href="admin-dashboard.php">Dashboard</a>
+                    <a href="admin-add-article.php">නව ප්‍රවෘත්තිය</a>
+                    <a href="index.php" target="_blank">වෙබ් අඩවිය</a>
                     <span class="user-info">Welcome, <?= htmlspecialchars($current_user['full_name'] ?? 'User') ?></span>
-                    <a href="admin-dashboard_db.php?logout=1" class="logout-btn">ඉවත් වන්න</a>
+                    <a href="admin-dashboard.php?logout=1" class="logout-btn">ඉවත් වන්න</a>
                 </nav>
             </div>
         </div>
@@ -132,7 +132,7 @@ $csrf_token = generate_csrf_token();
             <div class="add-article-container">
                 <div class="page-header">
                     <h1>ප්‍රවෘත්තිය සංස්කරණය</h1>
-                    <a href="admin-dashboard_db.php" class="back-btn">← Dashboard වෙත ආපසු</a>
+                    <a href="admin-dashboard.php" class="back-btn">← Dashboard වෙත ආපසු</a>
                 </div>
 
                 <?php if ($message): ?>
@@ -216,7 +216,7 @@ $csrf_token = generate_csrf_token();
                         </div>
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary">යාවත්කාලීන කරන්න</button>
-                            <a href="admin-dashboard_db.php" class="btn btn-secondary" style="margin-left:10px;">අවලංගු කරන්න</a>
+                            <a href="admin-dashboard.php" class="btn btn-secondary" style="margin-left:10px;">අවලංගු කරන්න</a>
                         </div>
                     </div>
                 </form>

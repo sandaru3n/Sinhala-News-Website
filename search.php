@@ -1,46 +1,62 @@
 <?php
+require_once 'includes/config.php';
+
 // Get search query from URL
-$search_query = isset($_GET['q']) ? trim($_GET['q']) : '';
+$search_query = sanitize_input($_GET['q'] ?? '');
+$category_filter = sanitize_input($_GET['category'] ?? '');
 
-// Sample search results (in real application, this would search database)
-$search_results = [];
-if ($search_query) {
-    // Simulate search results
-    $all_articles = [
-        [
-            'id' => 1,
-            'title' => 'ශ්‍රී ලංකාවේ නව ආර්ථික ප්‍රතිසංස්කරණ මාර්ගය',
-            'summary' => 'ශ්‍රී ලංකාවේ ආර්ථිකය සම්බන්ධයෙන් නව ප්‍රතිසංස්කරණ මාර්ගයක් ක්‍රියාත්මක කිරීමට රජය සූදානම් වෙමින් පවතී.',
-            'category' => 'දේශපාලන',
-            'date' => '2025 ජූලි 13',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Politics'
-        ],
-        [
-            'id' => 2,
-            'title' => 'ක්‍රිකට් ලෝක කුසලානයේ ශ්‍රී ලංකා කණ්ඩායම',
-            'summary' => 'ශ්‍රී ලංකා ක්‍රිකට් කණ්ඩායම නැවත ලෝක කුසලානයට සූදානම් වෙමින් පවතී.',
-            'category' => 'ක්‍රීඩා',
-            'date' => '2025 ජූලි 13',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Cricket'
-        ],
-        [
-            'id' => 3,
-            'title' => 'නව තාක්ෂණික නවෝත්පාදන ආයතනයක් පිහිටුවීම',
-            'summary' => 'ශ්‍රී ලංකාවේ තාක්ෂණික ක්ෂේත්‍රය දියුණු කිරීම සඳහා නව ආයතනයක් පිහිටුවීමට කටයුතු ආරම්භ වී ඇත.',
-            'category' => 'තාක්ෂණය',
-            'date' => '2025 ජූලි 12',
-            'image' => 'https://via.placeholder.com/400x250/f8f9fa/6c757d?text=Technology'
-        ]
-    ];
+try {
+    $db = new Database();
 
-    // Simple search simulation
-    $search_results = array_filter($all_articles, function($article) use ($search_query) {
-        return stripos($article['title'], $search_query) !== false ||
-               stripos($article['summary'], $search_query) !== false;
-    });
+    // Initialize variables
+    $search_results = [];
+    $results_count = 0;
+
+    // Perform search if query is provided
+    if (!empty($search_query)) {
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $limit = ARTICLES_PER_PAGE;
+
+        // Search articles
+        $search_results = $db->searchArticles($search_query, $page, $limit);
+        $results_count = count($search_results);
+
+        // Filter by category if specified
+        if (!empty($category_filter) && !empty($search_results)) {
+            $search_results = array_filter($search_results, function($article) use ($category_filter) {
+                return $article['category_name'] === $category_filter;
+            });
+            $results_count = count($search_results);
+        }
+    }
+
+    // Get categories for search filter
+    $categories = $db->getCategories();
+
+    // Get popular articles for suggestions
+    $popular_articles = $db->getPopularArticles(5);
+
+} catch (Exception $e) {
+    error_log("Search page error: " . $e->getMessage());
+    $search_results = [];
+    $results_count = 0;
+    $categories = [];
+    $popular_articles = [];
 }
 
-$results_count = count($search_results);
+/**
+ * Highlight search terms in results
+ */
+function highlightSearchTerm($text, $term) {
+    if (empty($term)) return htmlspecialchars($text);
+
+    $highlighted = preg_replace(
+        '/(' . preg_quote($term, '/') . ')/ui',
+        '<span class="highlight">$1</span>',
+        htmlspecialchars($text)
+    );
+    return $highlighted;
+}
 ?>
 
 <!DOCTYPE html>
@@ -48,8 +64,8 @@ $results_count = count($search_results);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $search_query ? 'සොයුම් ප්‍රතිඵල: ' . htmlspecialchars($search_query) : 'සොයන්න' ?> | සිංහල ප්‍රවෘත්ති</title>
-    <meta name="description" content="සිංහල ප්‍රවෘත්ති වෙබ් අඩවියේ සොයුම් ප්‍රතිඵල">
+    <title><?= $search_query ? 'සොයුම් ප්‍රතිඵල: ' . htmlspecialchars($search_query) : 'සොයන්න' ?> | <?= SITE_TITLE ?></title>
+    <meta name="description" content="<?= SITE_TITLE ?> වෙබ් අඩවියේ සොයුම් ප්‍රතිඵල">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,21 +77,24 @@ $results_count = count($search_results);
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <h1><a href="index.php" style="text-decoration: none; color: inherit;">සිංහල ප්‍රවෘත්ති</a></h1>
+                    <h1><a href="index_db.php" style="text-decoration: none; color: inherit;"><?= SITE_TITLE ?></a></h1>
                 </div>
                 <nav class="nav">
                     <ul class="nav-list">
-                        <li><a href="index.php">මුල් පිටුව</a></li>
-                        <li><a href="category.php?cat=politics">දේශපාලන</a></li>
-                        <li><a href="category.php?cat=sports">ක්‍රීඩා</a></li>
-                        <li><a href="category.php?cat=technology">තාක්ෂණය</a></li>
-                        <li><a href="category.php?cat=business">ව්‍යාපාර</a></li>
-                        <li><a href="category.php?cat=entertainment">විනෝදාස්වාදය</a></li>
+                        <li><a href="index_db.php">මුල් පිටුව</a></li>
+                        <li><a href="category_db.php?cat=politics">දේශපාලන</a></li>
+                        <li><a href="category_db.php?cat=sports">ක්‍රීඩා</a></li>
+                        <li><a href="category_db.php?cat=technology">තාක්ෂණය</a></li>
+                        <li><a href="category_db.php?cat=business">ව්‍යාපාර</a></li>
+                        <li><a href="category_db.php?cat=entertainment">විනෝදාස්වාදය</a></li>
                     </ul>
                 </nav>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="ප්‍රවෘත්ති සොයන්න..." value="<?= htmlspecialchars($search_query) ?>">
-                    <button type="button" id="searchBtn">සොයන්න</button>
+                    <form action="search_db.php" method="GET">
+                        <input type="text" name="q" id="searchInput" placeholder="ප්‍රවෘත්ති සොයන්න..."
+                               value="<?= htmlspecialchars($search_query) ?>" required>
+                        <button type="submit" id="searchBtn">සොයන්න</button>
+                    </form>
                 </div>
                 <button class="mobile-menu-toggle" id="mobileMenuToggle">
                     <span></span>
@@ -89,7 +108,7 @@ $results_count = count($search_results);
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
         <div class="container">
-            <a href="index.php">මුල් පිටුව</a> &gt;
+            <a href="index_db.php">මුල් පිටුව</a> &gt;
             <span>සොයුම් ප්‍රතිඵල</span>
         </div>
     </nav>
@@ -113,17 +132,18 @@ $results_count = count($search_results);
 
                 <!-- Advanced Search Form -->
                 <div class="advanced-search">
-                    <form method="GET" action="search.php" class="search-form">
+                    <form method="GET" action="search_db.php" class="search-form">
                         <div class="search-inputs">
-                            <input type="text" name="q" placeholder="මූල පද ඇතුළත් කරන්න..." value="<?= htmlspecialchars($search_query) ?>" class="search-input-main">
+                            <input type="text" name="q" placeholder="මූල පද ඇතුළත් කරන්න..."
+                                   value="<?= htmlspecialchars($search_query) ?>" class="search-input-main">
                             <select name="category" class="search-category">
                                 <option value="">සියලුම ප්‍රවර්ග</option>
-                                <option value="politics">දේශපාලන</option>
-                                <option value="sports">ක්‍රීඩා</option>
-                                <option value="technology">තාක්ෂණය</option>
-                                <option value="business">ව්‍යාපාර</option>
-                                <option value="entertainment">විනෝදාස්වාදය</option>
-                                <option value="health">සෞඛ්‍ය</option>
+                                <?php foreach ($categories as $category): ?>
+                                    <option value="<?= htmlspecialchars($category['name_sinhala']) ?>"
+                                            <?= $category_filter === $category['name_sinhala'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($category['name_sinhala']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                             <button type="submit" class="search-submit">සොයන්න</button>
                         </div>
@@ -137,34 +157,59 @@ $results_count = count($search_results);
                             <?php foreach ($search_results as $article): ?>
                                 <article class="search-result-item">
                                     <div class="result-image">
-                                        <img src="<?= $article['image'] ?>" alt="<?= htmlspecialchars($article['title']) ?>">
+                                        <img src="<?= htmlspecialchars($article['image_url'] ?? 'https://via.placeholder.com/200x120/f8f9fa/6c757d?text=News') ?>"
+                                             alt="<?= htmlspecialchars($article['title']) ?>">
                                     </div>
                                     <div class="result-content">
                                         <div class="result-meta">
-                                            <span class="result-category"><?= $article['category'] ?></span>
-                                            <span class="result-date"><?= $article['date'] ?></span>
+                                            <span class="result-category"><?= htmlspecialchars($article['category_name']) ?></span>
+                                            <span class="result-date"><?= format_date($article['published_at'], 'Y ජූලි d') ?></span>
+                                            <span class="result-author">කතුර: <?= htmlspecialchars($article['author_name']) ?></span>
                                         </div>
                                         <h2 class="result-title">
-                                            <a href="article.php?id=<?= $article['id'] ?>">
+                                            <a href="article_db.php?id=<?= $article['id'] ?>">
                                                 <?= highlightSearchTerm($article['title'], $search_query) ?>
                                             </a>
                                         </h2>
                                         <p class="result-summary">
                                             <?= highlightSearchTerm($article['summary'], $search_query) ?>
                                         </p>
-                                        <a href="article.php?id=<?= $article['id'] ?>" class="result-link">සම්පූර්ණයෙන් කියවන්න</a>
+                                        <div class="result-actions">
+                                            <a href="article_db.php?id=<?= $article['id'] ?>" class="result-link">සම්පූර්ණයෙන් කියවන්න</a>
+                                            <span class="result-views"><?= $article['views'] ?> බැලීම්</span>
+                                        </div>
                                     </div>
                                 </article>
                             <?php endforeach; ?>
                         </div>
 
                         <!-- Pagination for Search Results -->
-                        <div class="search-pagination">
-                            <a href="#" class="page-link disabled">&laquo; පෙර</a>
-                            <a href="#" class="page-link active">1</a>
-                            <a href="#" class="page-link">2</a>
-                            <a href="#" class="page-link">ඊළඟ &raquo;</a>
-                        </div>
+                        <?php if ($results_count >= ARTICLES_PER_PAGE): ?>
+                            <div class="search-pagination">
+                                <?php
+                                $current_page = $_GET['page'] ?? 1;
+                                $base_url = "search_db.php?q=" . urlencode($search_query);
+                                if ($category_filter) {
+                                    $base_url .= "&category=" . urlencode($category_filter);
+                                }
+                                ?>
+
+                                <?php if ($current_page > 1): ?>
+                                    <a href="<?= $base_url ?>&page=<?= $current_page - 1 ?>" class="page-link">&laquo; පෙර</a>
+                                <?php else: ?>
+                                    <span class="page-link disabled">&laquo; පෙර</span>
+                                <?php endif; ?>
+
+                                <span class="page-link active"><?= $current_page ?></span>
+
+                                <?php if ($results_count >= ARTICLES_PER_PAGE): ?>
+                                    <a href="<?= $base_url ?>&page=<?= $current_page + 1 ?>" class="page-link">ඊළඟ &raquo;</a>
+                                <?php else: ?>
+                                    <span class="page-link disabled">ඊළඟ &raquo;</span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+
                     <?php elseif ($search_query && $results_count === 0): ?>
                         <!-- No Results -->
                         <div class="no-results">
@@ -178,16 +223,18 @@ $results_count = count($search_results);
                                     <li>වෙනස් මූල පද භාවිතා කරන්න</li>
                                     <li>වඩා සාමාන්‍ය පද භාවිතා කරන්න</li>
                                     <li>වත්මන් ප්‍රවෘත්ති පරීක්ෂා කරන්න</li>
+                                    <li>අකුරු වැරදි නොමැතිද පරීක්ෂා කරන්න</li>
                                 </ul>
                             </div>
 
                             <div class="popular-searches">
                                 <h3>ජනප්‍රිය සොයුම්:</h3>
                                 <div class="popular-tags">
-                                    <a href="search.php?q=ආර්ථිකය" class="popular-tag">ආර්ථිකය</a>
-                                    <a href="search.php?q=ක්‍රිකට්" class="popular-tag">ක්‍රිකට්</a>
-                                    <a href="search.php?q=තාක්ෂණය" class="popular-tag">තාක්ෂණය</a>
-                                    <a href="search.php?q=දේශපාලන" class="popular-tag">දේශපාලන</a>
+                                    <a href="search_db.php?q=ආර්ථිකය" class="popular-tag">ආර්ථිකය</a>
+                                    <a href="search_db.php?q=ක්‍රිකට්" class="popular-tag">ක්‍රිකට්</a>
+                                    <a href="search_db.php?q=තාක්ෂණය" class="popular-tag">තාක්ෂණය</a>
+                                    <a href="search_db.php?q=දේශපාලන" class="popular-tag">දේශපාලන</a>
+                                    <a href="search_db.php?q=රජය" class="popular-tag">රජය</a>
                                 </div>
                             </div>
                         </div>
@@ -197,43 +244,27 @@ $results_count = count($search_results);
                             <div class="search-categories">
                                 <h2>ප්‍රවර්ග අනුව සොයන්න</h2>
                                 <div class="category-grid">
-                                    <a href="category.php?cat=politics" class="category-card">
-                                        <h3>දේශපාලන</h3>
-                                        <p>25 ප්‍රවෘත්ති</p>
-                                    </a>
-                                    <a href="category.php?cat=sports" class="category-card">
-                                        <h3>ක්‍රීඩා</h3>
-                                        <p>18 ප්‍රවෘත්ති</p>
-                                    </a>
-                                    <a href="category.php?cat=technology" class="category-card">
-                                        <h3>තාක්ෂණය</h3>
-                                        <p>12 ප්‍රවෘත්ති</p>
-                                    </a>
-                                    <a href="category.php?cat=business" class="category-card">
-                                        <h3>ව්‍යාපාර</h3>
-                                        <p>15 ප්‍රවෘත්ති</p>
-                                    </a>
-                                    <a href="category.php?cat=entertainment" class="category-card">
-                                        <h3>විනෝදාස්වාදය</h3>
-                                        <p>8 ප්‍රවෘත්ති</p>
-                                    </a>
-                                    <a href="category.php?cat=health" class="category-card">
-                                        <h3>සෞඛ්‍ය</h3>
-                                        <p>10 ප්‍රවෘත්ති</p>
-                                    </a>
+                                    <?php foreach ($categories as $category): ?>
+                                        <a href="category_db.php?cat=<?= htmlspecialchars($category['slug']) ?>" class="category-card">
+                                            <h3><?= htmlspecialchars($category['name_sinhala']) ?></h3>
+                                            <p><?= $category['article_count'] ?> ප්‍රවෘත්ති</p>
+                                        </a>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
 
-                            <div class="trending-searches">
-                                <h2>ජනප්‍රිය සොයුම්</h2>
-                                <div class="trending-list">
-                                    <a href="search.php?q=ආර්ථිකය">ආර්ථිකය</a>
-                                    <a href="search.php?q=ක්‍රිකට්">ක්‍රිකට්</a>
-                                    <a href="search.php?q=ජනාධිපතිවරණය">ජනාධිපතිවරණය</a>
-                                    <a href="search.php?q=තාක්ෂණය">තාක්ෂණය</a>
-                                    <a href="search.php?q=සෞඛ්‍ය">සෞඛ්‍ය</a>
+                            <?php if (!empty($popular_articles)): ?>
+                                <div class="trending-searches">
+                                    <h2>ජනප්‍රිය ප්‍රවෘත්ති</h2>
+                                    <div class="trending-list">
+                                        <?php foreach ($popular_articles as $article): ?>
+                                            <a href="article_db.php?id=<?= $article['id'] ?>" class="trending-item">
+                                                <?= htmlspecialchars($article['title']) ?>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
                                 </div>
-                            </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -246,25 +277,24 @@ $results_count = count($search_results);
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>සිංහල ප්‍රවෘත්ති</h3>
-                    <p>ශ්‍රී ලංකාවේ ප්‍රධාන ප්‍රවෘත්ති වෙබ් අඩවිය. විශ්වසනීය හා නිරවද්‍ය ප්‍රවෘත්ති ඔබ වෙත ගෙන එමු.</p>
+                    <h3><?= SITE_TITLE ?></h3>
+                    <p><?= SITE_TAGLINE ?>. විශ්වසනීය හා නිරවද්‍ය ප්‍රවෘත්ති ඔබ වෙත ගෙන එමු.</p>
                 </div>
                 <div class="footer-section">
                     <h4>ප්‍රවර්ග</h4>
                     <ul>
-                        <li><a href="category.php?cat=politics">දේශපාලන</a></li>
-                        <li><a href="category.php?cat=sports">ක්‍රීඩා</a></li>
-                        <li><a href="category.php?cat=technology">තාක්ෂණය</a></li>
-                        <li><a href="category.php?cat=business">ව්‍යාපාර</a></li>
+                        <?php foreach (array_slice($categories, 0, 4) as $category): ?>
+                            <li><a href="category_db.php?cat=<?= htmlspecialchars($category['slug']) ?>"><?= htmlspecialchars($category['name_sinhala']) ?></a></li>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>අප ගැන</h4>
                     <ul>
-                        <li><a href="about.php">අප ගැන</a></li>
-                        <li><a href="contact.php">අප සම්බන්ධ කරගන්න</a></li>
-                        <li><a href="privacy.php">පෞද්ගලිකත්ව ප්‍රතිපත්තිය</a></li>
-                        <li><a href="terms.php">භාවිත කිරීමේ නියම</a></li>
+                        <li><a href="about.html">අප ගැන</a></li>
+                        <li><a href="contact.html">අප සම්බන්ධ කරගන්න</a></li>
+                        <li><a href="privacy.html">පෞද්ගලිකත්ව ප්‍රතිපත්තිය</a></li>
+                        <li><a href="terms.html">භාවිත කිරීමේ නියම</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -278,23 +308,36 @@ $results_count = count($search_results);
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 සිංහල ප්‍රවෘත්ති. සියලුම හිමිකම් ඇවිරිණි.</p>
+                <p>&copy; 2025 <?= SITE_TITLE ?>. සියලුම හිමිකම් ඇවිරිණි.</p>
             </div>
         </div>
     </footer>
 
-    <script src="assets/js/script.js"></script>
-    <script>
-        // Override search functionality for search page
-        function performSearch() {
-            const searchInput = document.getElementById('searchInput');
-            const query = searchInput.value.trim();
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index_db.php" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏠</span>
+            <span class="bottom-nav-label">මුල්</span>
+        </a>
+        <a href="category_db.php?cat=politics" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🏛️</span>
+            <span class="bottom-nav-label">දේශපාලන</span>
+        </a>
+        <a href="category_db.php?cat=sports" class="bottom-nav-item">
+            <span class="bottom-nav-icon">⚽</span>
+            <span class="bottom-nav-label">ක්‍රීඩා</span>
+        </a>
+        <a href="search_db.php" class="bottom-nav-item active">
+            <span class="bottom-nav-icon">🔍</span>
+            <span class="bottom-nav-label">සොයන්න</span>
+        </a>
+        <a href="about.html" class="bottom-nav-item">
+            <span class="bottom-nav-icon">ℹ️</span>
+            <span class="bottom-nav-label">අප ගැන</span>
+        </a>
+    </nav>
 
-            if (query) {
-                window.location.href = `search.php?q=${encodeURIComponent(query)}`;
-            }
-        }
-    </script>
+    <script src="assets/js/script.js"></script>
 
     <style>
         .breadcrumb {
@@ -415,6 +458,7 @@ $results_count = count($search_results);
             gap: 1rem;
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
+            flex-wrap: wrap;
         }
 
         .result-category {
@@ -425,7 +469,8 @@ $results_count = count($search_results);
             font-weight: 500;
         }
 
-        .result-date {
+        .result-date,
+        .result-author {
             color: #666;
         }
 
@@ -451,6 +496,12 @@ $results_count = count($search_results);
             line-height: 1.5;
         }
 
+        .result-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .result-link {
             color: #2c5aa0;
             text-decoration: none;
@@ -463,11 +514,41 @@ $results_count = count($search_results);
             text-decoration: underline;
         }
 
+        .result-views {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
         .search-pagination {
             display: flex;
             justify-content: center;
             gap: 0.5rem;
             margin-top: 3rem;
+        }
+
+        .page-link {
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #2c5aa0;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .page-link:hover:not(.disabled) {
+            background: #2c5aa0;
+            color: white;
+        }
+
+        .page-link.active {
+            background: #2c5aa0;
+            color: white;
+            border-color: #2c5aa0;
+        }
+
+        .page-link.disabled {
+            color: #6c757d;
+            cursor: not-allowed;
         }
 
         .no-results {
@@ -584,7 +665,7 @@ $results_count = count($search_results);
             flex-wrap: wrap;
         }
 
-        .trending-list a {
+        .trending-item {
             background: #f8f9fa;
             color: #2c5aa0;
             padding: 0.75rem 1.5rem;
@@ -593,7 +674,7 @@ $results_count = count($search_results);
             transition: all 0.3s ease;
         }
 
-        .trending-list a:hover {
+        .trending-item:hover {
             background: #2c5aa0;
             color: white;
         }
@@ -601,6 +682,8 @@ $results_count = count($search_results);
         .highlight {
             background-color: #ffeb3b;
             font-weight: bold;
+            padding: 0.1rem 0.2rem;
+            border-radius: 2px;
         }
 
         @media (max-width: 768px) {
@@ -629,21 +712,13 @@ $results_count = count($search_results);
                 flex-direction: column;
                 align-items: center;
             }
+
+            .result-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
         }
     </style>
 </body>
 </html>
-
-<?php
-// Function to highlight search terms in results
-function highlightSearchTerm($text, $term) {
-    if (empty($term)) return htmlspecialchars($text);
-
-    $highlighted = preg_replace(
-        '/(' . preg_quote($term, '/') . ')/ui',
-        '<span class="highlight">$1</span>',
-        htmlspecialchars($text)
-    );
-    return $highlighted;
-}
-?>
